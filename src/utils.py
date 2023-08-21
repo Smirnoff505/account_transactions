@@ -13,54 +13,35 @@ def load_operation():
     return data
 
 
-def last_five_transactions(transactions):
-    """
-    Принимает список словарей, проверяет наличие всех ключей, после чего добавляет в список
-    :param transactions:
-    :return: список словарей последних пять операций
-    """
+def get_executed_only(list_operations):
+    """Делает выборку словарей только с полем EXECUTED"""
     result = []
-
-    for dict_ in transactions:
-        if 'date' in dict_ and 'state' in dict_ and dict_['state'] == 'EXECUTED':
-            result.append(dict_)
+    for item in list_operations:
+        if item.get('state') == 'EXECUTED':
+            result.append(item)
         else:
             continue
-    lst_five = sorted(result, key=lambda x: x['date'], reverse=True)
-
-    return lst_five[:5]
+    return result
 
 
-def hide_number_from(dict_):
-    """
-    Принимает словарь, скрывает часть счета исходящего *
-    :param dict_:
-    :return: замаскированный номер счета/карты
-    """
-    if 'from' in dict_:
-        lst_1 = str(dict_['from']).split(' ')
-        for num_1 in lst_1:
-            if num_1.isdigit() and len(num_1) == 16 and len(lst_1) == 3:
-                return lst_1.pop(0) + ' ' + lst_1.pop(0) + ' ' + num_1[0:4] + ' ' + num_1[4:6] + '**' + ' ' + '****' \
-                    + ' ' + num_1[-4:]
-            elif num_1.isdigit() and len(num_1) == 16 and len(lst_1) == 2:
-                return lst_1.pop(0) + ' ' + num_1[0:4] + ' ' + num_1[4:6] + '**' + ' ' + '****' + ' ' + num_1[-4:]
-            elif num_1.isdigit() and len(num_1) == 20 and len(lst_1) == 2:
-                return lst_1.pop(0) + ' ' + num_1[0:4] + ' ' + num_1[4:6] + '**' + ' ' + '****' + ' ' + '****' + ' ' \
-                    + num_1[-4:]
-    return ''
+def get_sorted(list_operations, count=5):
+    """Получает список словарей и возвращает отсортированные по убыванию операции.
+    По умолчанию 5 последних операций"""
+    last = sorted(list_operations, key=lambda x: x['date'], reverse=True)
+    return last[:count]
 
 
-def hide_number_to(dict_):
-    """
-    Принимает словарь, скрывает часть счета входящего *
-    :param dict_:
-    :return: замаскированный номер счета/карты
-    """
-    lst_2 = str(dict_['to']).split(' ')
-    for num_2 in lst_2:
-        if num_2.isdigit():
-            return '->' + ' ' + lst_2.pop(0) + ' ' + '**' + num_2[-4:]
+def hide_number(bill_info):
+    if bill_info is None:
+        return ''
+    bill_parts = bill_info.split()
+    number = bill_parts[-1]
+    if bill_info.lower().startswith('счет'):
+        hided_number = f'**{number[-4:]}'
+    else:
+        hided_number = f'{number[:4]} {number[4:6]}** **** {number[-4:]}'
+        bill_parts[-1] = hided_number
+    return ' '.join(bill_parts)
 
 
 def amount(dict_):
@@ -72,14 +53,12 @@ def amount(dict_):
     return f"{dict_['operationAmount']['amount']} {dict_['operationAmount']['currency']['name']}"
 
 
-def date_formation(dict_):
+def date_formation(operation):
     """
     Принимает словарь, достает и преобразует дату
-    :param dict_:
     :return: f - строку с датой транзакции
     """
-    for date in dict_:
-        item = dict_['date'][:10]
-        new = tuple(item.split('-'))
-        year, month, day = new
-        return f"{day}.{month}.{year}"
+    item = operation['date'][:10]
+    year, month, day = item.split('-')
+
+    return f"{day}.{month}.{year}"
