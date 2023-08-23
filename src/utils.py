@@ -19,8 +19,6 @@ def get_executed_only(list_operations):
     for item in list_operations:
         if item.get('state') == 'EXECUTED':
             result.append(item)
-        else:
-            continue
     return result
 
 
@@ -40,7 +38,7 @@ def hide_number(bill_info):
         hided_number = f'**{number[-4:]}'
     else:
         hided_number = f'{number[:4]} {number[4:6]}** **** {number[-4:]}'
-        bill_parts[-1] = hided_number
+    bill_parts[-1] = hided_number
     return ' '.join(bill_parts)
 
 
